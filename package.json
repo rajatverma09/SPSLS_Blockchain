@@ -1,0 +1,22 @@
+{
+  "name": "new_spsls",
+  "version": "1.0.0",
+  "description": "",
+  "main": "\"\"",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "ganache-cli": "^6.7.0",
+    "truffle": "^5.0.36",
+    "web3": "^1.2.1"
+  },
+  "devDependencies": {
+    "mocha": "^6.2.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "",
+  "license": "ISC"
+}
