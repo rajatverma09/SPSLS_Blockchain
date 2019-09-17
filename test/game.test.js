@@ -12,12 +12,14 @@ let hash_2rajat = "0x742d7499fdb7a04e4fc4f20895e6f047a2f875a51992b966adc6e7d50e4
 let hash_2megha = "0xc2d4cd0652247eab06a4389d53069ac545b1e8638af5e1b1923f38e457a30e65";
 let hash_3megha = "0xad74bfef18398fe29bfaa95b63e5aa3793ef504468048ad495b7d45beb5f5156";
 
-
-
 const ETHER = 10**18;
 
 const interface = json['abi'];
 const bytecode = json['bytecode']
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
 beforeEach(async () => {
     accounts = await web3.eth.getAccounts();
@@ -495,6 +497,7 @@ describe ('SPSLS', () => {
         assert.equal(await SPSLS.methods.player1_points().call(), 0, "Variable not reset");
         assert.equal(await SPSLS.methods.player2_points().call(), 0, "Variable not reset");
 
+        assert.equal(await SPSLS.methods.gametype().call(), 0, "Variable not reset");
         assert.equal(await SPSLS.methods.round_no().call(), 0, "Variable not reset");
     });
 
@@ -540,6 +543,170 @@ describe ('SPSLS', () => {
         let new_balance = await SPSLS.methods.etherInHouse().call();
         assert.ok(new_balance == (initial_bal - (2* ETHER)));
     });
+
+    it('Check Withdraw function', async () => {
+        
+        await SPSLS.methods.PlayWithPlayer().send({ from: accounts[1], value: 1 * ETHER, gas: 3000000});
+        await SPSLS.methods.PlayWithPlayer().send({ from: accounts[2], value: 1 * ETHER, gas: 3000000});
+        
+        let initial_bal = await SPSLS.methods.etherInHouse().call();
+
+        await SPSLS.methods.commit(hash_1rajat).send({from: accounts[1], gas: 3000000});
+        await SPSLS.methods.commit(hash_2megha).send({from: accounts[2], gas: 3000000});
+        await SPSLS.methods.reveal("1","rajat").send({from: accounts[1], gas: 3000000});
+        await SPSLS.methods.reveal("2","megha").send({from: accounts[2], gas: 3000000});  
+        await SPSLS.methods.roundResult().send({from: accounts[1], gas: 3000000});
+                
+        // round_winner = await SPSLS.methods.getRoundResult().call({from: accounts[1], gas: 3000000});        
+        // console.log("RES: " + round_winner);
+
+        await SPSLS.methods.commit(hash_1rajat).send({from: accounts[1], gas: 3000000});
+        await SPSLS.methods.commit(hash_3megha).send({from: accounts[2], gas: 3000000});
+
+        await SPSLS.methods.withdraw().send({ from: accounts[1], gas: 3000000});
+        
+        assert.equal(await SPSLS.methods.player1().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.player2().call(), 0, "Variable not reset");
+
+        assert.equal(await SPSLS.methods.player1Hand().call(), "", "Variable not reset");
+        assert.equal(await SPSLS.methods.player2Hand().call(), "", "Variable not reset");
+
+        assert.equal(await SPSLS.methods.player1HandHash().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.player2HandHash().call(), 0, "Variable not reset");
+
+        assert.equal(await SPSLS.methods.player1_points().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.player2_points().call(), 0, "Variable not reset");
+
+        assert.equal(await SPSLS.methods.gametype().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.round_no().call(), 0, "Variable not reset");
+
+        let new_balance = await SPSLS.methods.etherInHouse().call();
+        assert.ok(new_balance == (initial_bal - (2* ETHER)));
+    });
+
+    it('Check Withdraw function just after register', async () => {
+        
+        await SPSLS.methods.PlayWithPlayer().send({ from: accounts[1], value: 1 * ETHER, gas: 3000000});
+        await SPSLS.methods.PlayWithPlayer().send({ from: accounts[2], value: 1 * ETHER, gas: 3000000});
+        
+        let initial_bal = await SPSLS.methods.etherInHouse().call();
+
+        await SPSLS.methods.withdraw().send({ from: accounts[1], gas: 3000000});
+        
+        assert.equal(await SPSLS.methods.player1().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.player2().call(), 0, "Variable not reset");
+
+        assert.equal(await SPSLS.methods.player1Hand().call(), "", "Variable not reset");
+        assert.equal(await SPSLS.methods.player2Hand().call(), "", "Variable not reset");
+
+        assert.equal(await SPSLS.methods.player1HandHash().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.player2HandHash().call(), 0, "Variable not reset");
+
+        assert.equal(await SPSLS.methods.player1_points().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.player2_points().call(), 0, "Variable not reset");
+
+        assert.equal(await SPSLS.methods.gametype().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.round_no().call(), 0, "Variable not reset");
+
+        let new_balance = await SPSLS.methods.etherInHouse().call();
+        assert.ok(new_balance == (initial_bal - (2* ETHER)));
+    });
+
+
+    it('Check Timeout timer after only first player has revealed', async function() {
+        
+        await SPSLS.methods.PlayWithPlayer().send({ from: accounts[1], value: 1 * ETHER, gas: 3000000});
+        await SPSLS.methods.PlayWithPlayer().send({ from: accounts[2], value: 1 * ETHER, gas: 3000000});
+        
+        let initial_bal = await SPSLS.methods.etherInHouse().call();
+
+        await SPSLS.methods.commit(hash_2megha).send({from: accounts[1], gas: 3000000});
+        await SPSLS.methods.commit(hash_1rajat).send({from: accounts[2], gas: 3000000});
+        await SPSLS.methods.reveal("2","megha").send({from: accounts[1], gas: 3000000});  
+        await SPSLS.methods.reveal("1","rajat").send({from: accounts[2], gas: 3000000});
+        await SPSLS.methods.roundResult().send({from: accounts[1], gas: 3000000});
+                
+        // round_winner = await SPSLS.methods.getRoundResult().call({from: accounts[1], gas: 3000000});        
+        // console.log("RES: " + round_winner);
+
+
+        await SPSLS.methods.commit(hash_3megha).send({from: accounts[1], gas: 3000000});
+        await SPSLS.methods.commit(hash_1rajat).send({from: accounts[2], gas: 3000000});
+        await SPSLS.methods.reveal("3","megha").send({from: accounts[1], gas: 3000000});
+        console.log("            Timer running");
+        await sleep(13000);
+
+        await SPSLS.methods.roundResult().send({from: accounts[1], gas: 3000000});
+
+        
+        assert.equal(await SPSLS.methods.player1().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.player2().call(), 0, "Variable not reset");
+
+        assert.equal(await SPSLS.methods.player1Hand().call(), "", "Variable not reset");
+        assert.equal(await SPSLS.methods.player2Hand().call(), "", "Variable not reset");
+
+        assert.equal(await SPSLS.methods.player1HandHash().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.player2HandHash().call(), 0, "Variable not reset");
+
+        assert.equal(await SPSLS.methods.player1_points().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.player2_points().call(), 0, "Variable not reset");
+
+        assert.equal(await SPSLS.methods.gametype().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.round_no().call(), 0, "Variable not reset");
+
+        let new_balance = await SPSLS.methods.etherInHouse().call();
+        assert.ok(new_balance == (initial_bal - (2* ETHER)));
+
+    }).timeout(40000);
+
+
+    it('Check Timeout timer after both players have revealed but did not check result', async function() {
+        
+        await SPSLS.methods.PlayWithPlayer().send({ from: accounts[1], value: 1 * ETHER, gas: 3000000});
+        await SPSLS.methods.PlayWithPlayer().send({ from: accounts[2], value: 1 * ETHER, gas: 3000000});
+        
+        let initial_bal = await SPSLS.methods.etherInHouse().call();
+
+        await SPSLS.methods.commit(hash_2megha).send({from: accounts[1], gas: 3000000});
+        await SPSLS.methods.commit(hash_1rajat).send({from: accounts[2], gas: 3000000});
+        await SPSLS.methods.reveal("2","megha").send({from: accounts[1], gas: 3000000});  
+        await SPSLS.methods.reveal("1","rajat").send({from: accounts[2], gas: 3000000});
+        await SPSLS.methods.roundResult().send({from: accounts[1], gas: 3000000});
+                
+        // round_winner = await SPSLS.methods.getRoundResult().call({from: accounts[1], gas: 3000000});        
+        // console.log("RES: " + round_winner);
+
+
+        await SPSLS.methods.commit(hash_3megha).send({from: accounts[1], gas: 3000000});
+        await SPSLS.methods.commit(hash_1rajat).send({from: accounts[2], gas: 3000000});
+        await SPSLS.methods.reveal("3","megha").send({from: accounts[1], gas: 3000000});
+        await SPSLS.methods.reveal("1","rajat").send({from: accounts[2], gas: 3000000});
+        
+        console.log("            Timer running");
+        await sleep(13000);
+
+        await SPSLS.methods.roundResult().send({from: accounts[1], gas: 3000000});
+
+        
+        assert.equal(await SPSLS.methods.player1().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.player2().call(), 0, "Variable not reset");
+
+        assert.equal(await SPSLS.methods.player1Hand().call(), "", "Variable not reset");
+        assert.equal(await SPSLS.methods.player2Hand().call(), "", "Variable not reset");
+
+        assert.equal(await SPSLS.methods.player1HandHash().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.player2HandHash().call(), 0, "Variable not reset");
+
+        assert.equal(await SPSLS.methods.player1_points().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.player2_points().call(), 0, "Variable not reset");
+
+        assert.equal(await SPSLS.methods.gametype().call(), 0, "Variable not reset");
+        assert.equal(await SPSLS.methods.round_no().call(), 0, "Variable not reset");
+
+        let new_balance = await SPSLS.methods.etherInHouse().call();
+        assert.ok(new_balance == (initial_bal - (2* ETHER)));
+
+    }).timeout(40000);
 
 
 

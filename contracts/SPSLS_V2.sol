@@ -19,16 +19,22 @@ contract SPSLS {
     uint private MAX_ROUND;
     uint private bidAmount = 1 ether;
     uint public round_no;
-    int8 private gametype;
+    int8 public gametype;
+    int8 public whowithdrew;
     int winner = -1;
     string public getFinalResult = "";
+    uint256 constant UINT256_MAX = ~uint256(0) - 1000000;
+    uint private TIMEOUTTIMER = 10;
+    uint public countdownBegins=UINT256_MAX;
     
     
     constructor() public payable 
     {   
+        
         owner= msg.sender;
         house = address(this);
         gametype=0;
+        whowithdrew=0;
         MAX_ROUND = 3;
         round_no = 0;
         
@@ -122,6 +128,48 @@ contract SPSLS {
     {
         return house.balance;
     }
+    
+    function withdraw() public isRegistered 
+    {
+         if (msg.sender==player1)
+                player2.transfer(2*bidAmount);
+            else if (msg.sender==player2)
+                player1.transfer(2*bidAmount);
+
+            /** reset everything ready for the next game */
+            player1Hand = "";
+            player2Hand = "";
+            player1HandHash = "";
+            player2HandHash = "";
+            player1_points=0;
+            player2_points=0;
+            player1 = address(0);
+            player2 = address(0);
+            round_no = 0;
+            gametype=0;
+            whowithdrew = 0;
+            countdownBegins=UINT256_MAX;
+    }
+    
+    function countdown() private
+    {
+        if (whowithdrew == 1)
+            player2.transfer(2*bidAmount);
+        else if (whowithdrew == 2)
+            player1.transfer(2*bidAmount);
+        player1Hand = "";
+        player2Hand = "";
+        player1HandHash = "";
+        player2HandHash = "";
+        player1_points=0;
+        player2_points=0;
+        player1 = address(0);
+        player2 = address(0);
+        round_no = 0;
+        gametype=0;
+        whowithdrew = 0;
+        countdownBegins=UINT256_MAX;
+    }
  
     
     
@@ -194,9 +242,19 @@ contract SPSLS {
 
     function reveal(string memory _hand, string memory _nonce) public isRegistered isValid(_hand)
     {
+        
         if(gametype != -1)
             require(player1HandHash != 0 && player2HandHash != 0, "Commit before you reveal OR Let the other player commit");
         
+
+         if (bytes(player1Hand).length == 0 && bytes(player2Hand).length == 0)
+         {
+            countdownBegins = now;
+            if(msg.sender == player2)
+                whowithdrew=1;
+            else
+                whowithdrew=2;
+         }
         if (msg.sender == player1)
         {
             if(gametype != -1)
@@ -216,11 +274,16 @@ contract SPSLS {
         }
     }
 
+    
     function roundResult() public  isRegistered
     {
         winner = -1;
         require(round_no < MAX_ROUND);
-       
+        if (now > countdownBegins + TIMEOUTTIMER)
+        {
+            countdown();
+            return;
+        }
         require(bytes(player1Hand).length != 0 && bytes(player2Hand).length != 0, "Both players haven't played."); // This will trigger when both players have made a hand
        
         round_no++;
@@ -259,7 +322,10 @@ contract SPSLS {
             player1 = address(0);
             player2 = address(0);
             round_no = 0;
+            gametype=0;
         }
+        countdownBegins=UINT256_MAX;
+        whowithdrew = 0;
 
     }
     
