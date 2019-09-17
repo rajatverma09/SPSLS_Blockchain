@@ -8,15 +8,16 @@ contract SPSLS {
     mapping (string => mapping(string => int)) results;
     address payable public player1;
     address payable public player2;
-    address payable private owner;
-    uint private player1_points;
-    uint private player2_points;
-    string private player1Hand;
-    string private player2Hand;
+    address payable public owner;
+    address payable public house;
+    uint public player1_points;
+    uint public player2_points;
+    string public player1Hand;
+    string public player2Hand;
     bytes32 public player1HandHash;
     bytes32 public player2HandHash;
     uint private MAX_ROUND;
-    uint private bidAmount=1 ether;
+    uint private bidAmount = 1 ether;
     uint public round_no;
     int8 private gametype;
     int winner = -1;
@@ -26,8 +27,9 @@ contract SPSLS {
     constructor() public payable 
     {   
         owner= msg.sender;
+        house = address(this);
         gametype=0;
-        MAX_ROUND = 2;
+        MAX_ROUND = 3;
         round_no = 0;
         
         player1_points = 0;
@@ -113,14 +115,18 @@ contract SPSLS {
 
     function donateToHouse() public payable
     {
-        address(this).transfer(msg.value); 
+        house.transfer(msg.value); 
     }
     
     function etherInHouse() public view returns(uint)
     {
-        return address(this).balance;
+        return house.balance;
     }
     
+    function getPlayerBalance () external view returns (uint x)
+    {
+        return msg.sender.balance;
+    }
     
     
     
@@ -133,10 +139,9 @@ contract SPSLS {
         
         require(player1 == address(0), "Players limit reached.");
         
-        require(address(this).balance >= 1 ether, "House is empty. Donate ethers to  house");
-    
         require (msg.value == bidAmount,"bid 1 ether");
-        
+    
+        require(address(this).balance >= 2 ether, "House is empty. Donate ethers to  house");
     
         winner = -1;    
         getFinalResult = "";
@@ -144,12 +149,12 @@ contract SPSLS {
         if(player1 == address(0))
         {
             player1 = msg.sender;
-            player2 = address(this);
+            player2 = house;
         }
         gametype = -1;
     }
     
-    function PlayWithPlayer() public payable 
+    function PlayWithPlayer() public payable
     {
         /** initial registration. first player to register is player1, second player to register is player2 */
         require(gametype != -1, "Room not free");
@@ -160,6 +165,7 @@ contract SPSLS {
         
         require (msg.value == bidAmount,"bid 1 ether");
     
+        gametype = 1;
         winner = -1;    
         getFinalResult = "";
         
@@ -171,7 +177,6 @@ contract SPSLS {
         {
             player2 = msg.sender;
         }
-        gametype = 1;
     }
 
     function commit(bytes32 _hash) public payable isRegistered 
