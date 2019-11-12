@@ -1,3 +1,5 @@
+const ETHER = 10 ** 18;
+
 App = {
   loading: false,
   contracts: {},
@@ -24,7 +26,7 @@ App = {
         // Request account access if needed
         await ethereum.enable()
         // Acccounts now exposed
-        web3.eth.sendTransaction({/* ... */})
+        web3.eth.sendTransaction({/* ... */ })
       } catch (error) {
         // User denied account access...
       }
@@ -34,7 +36,7 @@ App = {
       App.web3Provider = web3.currentProvider
       window.web3 = new Web3(web3.currentProvider)
       // Acccounts always exposed
-      web3.eth.sendTransaction({/* ... */})
+      web3.eth.sendTransaction({/* ... */ })
     }
     // Non-dapp browsers...
     else {
@@ -45,7 +47,6 @@ App = {
   loadAccount: async () => {
     // Set the current blockchain account
     App.account = web3.eth.accounts[0]
-    console.log(App.account)
   },
 
   loadContract: async () => {
@@ -63,17 +64,96 @@ App = {
     if (App.loading) {
       return
     }
-
     // Update app loading state
     App.setLoading(true)
 
+    // Update loading state
+    App.setLoading(false)
+  },
+
+  convertToResult: async (id) => {
+    if (id == 0)
+      return "Rock";
+    if (id == 1)
+      return "Papper";
+    if (id == 2)
+      return "Scissors";
+    if (id == 3)
+      return "Lizard";
+    if (id == 4)
+      return "Spock";
+
+  },
+
+  updateStatus: async () => {
+    const state = await App.spsls.getState();
+    if (state == 0)
+      document.getElementById("state").innerHTML = "Player1 revealed " + await App.convertToResult(await App.spsls.player1Hand()) + " Player2 revealed " + await App.convertToResult(await App.spsls.player2Hand());
+    if (state == 1)
+      document.getElementById("state").innerHTML = "Player1 revealed " + await App.convertToResult(await App.spsls.player1Hand());
+    if (state == 2)
+      document.getElementById("state").innerHTML = "Player2 revealed " + await App.convertToResult(await App.spsls.player2Hand());
+    if (state == 3)
+      document.getElementById("state").innerHTML = "Nobody commited";
+    if (state == 4)
+      document.getElementById("state").innerHTML = "Player1 commited";
+    if (state == 5)
+      document.getElementById("state").innerHTML = "Player2 commited";
+    if (state == 6)
+      document.getElementById("state").innerHTML = "Both players commited";
+    return state;
+  },
+
+  updateGame: async () => {
+    // console.log(await App.spsls.countdownBegins())
     // Render Account
     $('#account').html(App.account)
 
-    // Render Tasks
+    var registered = await App.isRagistered()
+    console.log("Register: " + registered)
 
-    // Update loading state
-    App.setLoading(false)
+    // Switch on/off section 1
+    if (document.getElementById("section1").style.display == "none")
+      if (!registered)
+        document.getElementById("section1").style.display = "block";
+    if (document.getElementById("section1").style.display == "block")
+      if (registered)
+        document.getElementById("section1").style.display = "none";
+
+    var state = await App.updateStatus()
+
+    // Switch on/off section 2
+    if (document.getElementById("section2").style.display == "none")
+      if (registered && (state == 3 || state == 4 || state == 5))
+        document.getElementById("section2").style.display = "block";
+    if (document.getElementById("section2").style.display == "block")
+      if (!(registered && (state == 3 || state == 4 || state == 5)))
+        document.getElementById("section2").style.display = "none";
+
+    // Switch on/off section 3
+    if (document.getElementById("section3").style.display == "none")
+      if (registered && (state == 1 || state == 2 || state == 6))
+        document.getElementById("section3").style.display = "block";
+    if (document.getElementById("section3").style.display == "block")
+      if (!(registered && (state == 1 || state == 2 || state == 6)))
+        document.getElementById("section3").style.display = "none";
+
+    // Switch on/off section 4
+    if (document.getElementById("section4").style.display == "none")
+      if (state == 0)
+        document.getElementById("section4").style.display = "block";
+    if (document.getElementById("section4").style.display == "block")
+      if (state != 0)
+        document.getElementById("section4").style.display = "none";
+
+  },
+
+  isRagistered: async function () {
+    if (App.account == await App.spsls.player1())
+      return 1;
+    if (App.account == await App.spsls.player2())
+      return 2;
+    return 0;
   },
 
 
@@ -89,11 +169,70 @@ App = {
       loader.hide()
       content.show()
     }
-  }
+  },
+
+  donateToHouse: async () => {
+    App.setLoading(true)
+    const val = $('#_donate').val()
+    await App.spsls.donateToHouse({ from: App.account, value: val * ETHER })
+    App.setLoading(false)
+  },
+
+  PlayWithBot: async () => {
+    App.setLoading(true)
+    await App.spsls.PlayWithBot({ from: App.account, value: 1 * ETHER })
+    App.setLoading(false)
+  },
+
+  PlayWithPlayer: async () => {
+    App.setLoading(true)
+    await App.spsls.PlayWithPlayer({ from: App.account, value: 1 * ETHER })
+    App.setLoading(false)
+  },
+
+  commit: async () => {
+    App.setLoading(true)
+    var e = document.getElementById("choice");
+    var choice = e.options[e.selectedIndex].value;
+    _nonce = document.getElementById("_Cnonce").value;
+    console.log("commit :: " + choice + _nonce)
+    var hash = await App.spsls.calcHash(choice, _nonce)
+    console.log(hash)
+    await App.spsls.commit(hash, { from: App.account })
+    App.setLoading(false)
+
+  },
+
+  reveal: async () => {
+    App.setLoading(true)
+    var e = document.getElementById("choice");
+    var choice = e.options[e.selectedIndex].value;
+    _nonce = document.getElementById("_Rnonce").value;
+    await App.spsls.reveal(choice, _nonce, { from: App.account })
+    App.setLoading(false)
+  },
+
+  roundResult: async () => {
+    App.setLoading(true)
+    var result = await App.spsls.roundResult({ from: App.account })
+    document.getElementById("state").innerHTML = result;
+    App.setLoading(false)
+  },
+
+  withdraw: async () => {
+    App.setLoading(true)
+    await App.spsls.withdraw({ from: App.account })
+    App.setLoading(false)
+  },
+
 }
 
 $(() => {
   $(window).load(() => {
-    App.load()
-  })
-})
+    App.load();
+    setInterval(function () {
+      App.loadAccount();
+      App.updateGame();
+    }, 2000);
+  });
+});

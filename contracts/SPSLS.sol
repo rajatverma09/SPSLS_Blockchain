@@ -23,9 +23,9 @@ contract SPSLS {
     int8 public whowithdrew;
     int winner = -1;
     string public getFinalResult = "";
-    uint256 constant UINT256_MAX = ~uint256(0) - 1000000;
-    uint private TIMEOUTTIMER = 10;
-    uint public countdownBegins=UINT256_MAX;
+    int256 constant INT_MAX = 1000000000000;
+    int private TIMEOUTTIMER = 60;
+    int public countdownBegins=INT_MAX;
     
     
     constructor() public payable 
@@ -46,8 +46,8 @@ contract SPSLS {
         
         player1Hand = "";
         player2Hand = "";
-        player1HandHash = 0;
-        player2HandHash = 0;
+        player1HandHash = bytes32(0);
+        player2HandHash = bytes32(0);
         
         /** constructor holding results matrix for determining winners */
         results["0"]["0"] = 0;
@@ -104,7 +104,7 @@ contract SPSLS {
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
-    function calcHash(string memory a, string memory b) private pure returns (bytes32 x)
+    function calcHash(string memory a, string memory b) public pure returns (bytes32 x)
     {
         return keccak256(abi.encodePacked(a,b));
     }
@@ -139,8 +139,8 @@ contract SPSLS {
             /** reset everything ready for the next game */
             player1Hand = "";
             player2Hand = "";
-            player1HandHash = "";
-            player2HandHash = "";
+            player1HandHash = bytes32(0);
+            player2HandHash = bytes32(0);
             player1_points=0;
             player2_points=0;
             player1 = address(0);
@@ -148,7 +148,7 @@ contract SPSLS {
             round_no = 0;
             gametype=0;
             whowithdrew = 0;
-            countdownBegins=UINT256_MAX;
+            countdownBegins=INT_MAX;
     }
     
     function countdown() private
@@ -159,8 +159,8 @@ contract SPSLS {
             player1.transfer(2*bidAmount);
         player1Hand = "";
         player2Hand = "";
-        player1HandHash = "";
-        player2HandHash = "";
+        player1HandHash = bytes32(0);
+        player2HandHash = bytes32(0);
         player1_points=0;
         player2_points=0;
         player1 = address(0);
@@ -168,7 +168,34 @@ contract SPSLS {
         round_no = 0;
         gametype=0;
         whowithdrew = 0;
-        countdownBegins=UINT256_MAX;
+        countdownBegins=INT_MAX;
+    }
+    
+    function getState() public view returns (uint8) {
+        if(gametype != -1)
+	  	{
+    	  	if(bytes(player1Hand).length != 0 && bytes(player2Hand).length != 0)
+    	  	    return 0; //getRoundResult
+    	  	if(bytes(player1Hand).length != 0 && bytes(player2Hand).length == 0)
+    	  	    return 1; // reveal
+    	  	if(bytes(player1Hand).length == 0 && bytes(player2Hand).length != 0)
+    	  	    return 2; // reveal
+    	  	if(player1HandHash==bytes32(0) && player2HandHash==bytes32(0))
+    	  	    return 3; // commit
+	  	    if(player1HandHash!=bytes32(0) && player2HandHash==bytes32(0))
+	  		    return 4; // commit
+	  		if(player1HandHash==bytes32(0) && player2HandHash!=bytes32(0))
+	  		    return 5; // commit
+    	  	if(player1HandHash != bytes32(0) && player2HandHash != bytes32(0))
+    	  	    return 6;  // reveal
+	  	}
+	  	else if(gametype != 1)
+	  	{
+	  	    if(bytes(player1Hand).length != 0 && bytes(player2Hand).length != 0)
+    	  	    return 0; // getRoundResult
+    	  	else
+    	  	    return 6; // reveal
+	  	}
     }
  
     
@@ -215,7 +242,7 @@ contract SPSLS {
         
         if (player1 == address(0))
         {
-            player1 = msg.sender;
+                player1 = msg.sender;
         }
         else if (player2 == address(0))
         {
@@ -230,12 +257,12 @@ contract SPSLS {
         
         if (msg.sender == player1)
         {
-            require(player1HandHash == 0,"Cannot commit twice"); 
+            require(player1HandHash == bytes32(0),"Cannot commit twice"); 
             player1HandHash = _hash;
         }
         else if (msg.sender == player2)
         {
-            require(player2HandHash == 0,"Cannot commit twice");
+            require(player2HandHash == bytes32(0),"Cannot commit twice");
             player2HandHash = _hash; 
         }
     }
@@ -244,12 +271,12 @@ contract SPSLS {
     {
         
         if(gametype != -1)
-            require(player1HandHash != 0 && player2HandHash != 0, "Commit before you reveal OR Let the other player commit");
+            require(player1HandHash != bytes32(0) && player2HandHash != bytes32(0), "Commit before you reveal OR Let the other player commit");
         
 
          if (bytes(player1Hand).length == 0 && bytes(player2Hand).length == 0)
          {
-            countdownBegins = now;
+            countdownBegins = int(now);
             if(msg.sender == player2)
                 whowithdrew=1;
             else
@@ -275,14 +302,14 @@ contract SPSLS {
     }
 
     
-    function roundResult() public  isRegistered
+    function roundResult() public isRegistered returns(string memory)
     {
         winner = -1;
         require(round_no < MAX_ROUND);
-        if (now > countdownBegins + TIMEOUTTIMER)
+        if (int(now) - countdownBegins > TIMEOUTTIMER)
         {
             countdown();
-            return;
+            return "Time out";
         }
         require(bytes(player1Hand).length != 0 && bytes(player2Hand).length != 0, "Both players haven't played."); // This will trigger when both players have made a hand
        
@@ -295,8 +322,8 @@ contract SPSLS {
 
         player1Hand = "";
         player2Hand = "";
-        player1HandHash = 0;
-        player2HandHash = 0;
+        player1HandHash = bytes32(0);
+        player2HandHash = bytes32(0);
         
         if(round_no == MAX_ROUND)
         {
@@ -324,9 +351,10 @@ contract SPSLS {
             round_no = 0;
             gametype=0;
         }
-        countdownBegins=UINT256_MAX;
+        countdownBegins=INT_MAX;
         whowithdrew = 0;
-
+        
+        return getRoundResult();
     }
     
     function getRoundResult() public view returns(string memory)
