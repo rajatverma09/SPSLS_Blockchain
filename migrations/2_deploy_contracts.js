@@ -1,4 +1,4 @@
-var SPSLS = artifacts.require("./SPSLS_V2.sol");
+var Spsls = artifacts.require("./SPSLS.sol");
 module.exports = function(deployer) {
-  deployer.deploy(SPSLS);
+  deployer.deploy(Spsls);
 };
