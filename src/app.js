@@ -120,6 +120,23 @@ App = {
       if (registered)
         document.getElementById("section1").style.display = "none";
 
+    // Switch on/off withdraw 
+    if (document.getElementById("withdraw").style.display == "none")
+      if (registered)
+        document.getElementById("withdraw").style.display = "block";
+    if (document.getElementById("withdraw").style.display == "block")
+      if (!registered)
+        document.getElementById("withdraw").style.display = "none";
+
+    // Switch on/off roundno
+    if (registered) {
+      document.getElementById("roundno").innerHTML = "Round No. " + await App.spsls.round_no();
+      document.getElementById("roundno").style.display = "block";
+    }
+    if (document.getElementById("roundno").style.display == "block")
+      if (!registered)
+        document.getElementById("roundno").style.display = "none";
+
     var state = await App.updateStatus()
 
     // Switch on/off section 2

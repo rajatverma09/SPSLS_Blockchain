@@ -44,8 +44,15 @@
         </div>
         <div id="content">
           <section class="game">
-
+            <br><br><br>
             <h1>Rock - Paper - Scissor - Lizard - Spock</h1>
+
+            <div align="middle" style="width:100%">
+              <font id="roundno" size="4" color="white" style="display:none;padding: 40px;"></font>
+            </div>
+            <div align="middle" style="width:100%; display:none; padding: 40px;" id="withdraw">
+              <button onclick="App.withdraw(); return false;">Withdraw</button>
+            </div>
 
             <div id="section1" align="middle" height="40vh" style="display:none;padding: 40px;">
               <button onclick="App.PlayWithBot(); return false;">Let's Play with Bot</button>
@@ -80,7 +87,9 @@
             <div id="section4" align="middle" height="40vh" style="display:none;padding: 40px;">
               <button class="button" type="button" onclick="App.roundResult()">Get Round Result</button> <br>
             </div>
-            <div align="middle" style="width:100%"><font id="state" size="4" color="white">[Loading Game State..]</font></div>
+            <div align="middle" style="width:100%">
+              <font id="state" size="4" color="white">[Loading Game State..]</font>
+            </div>
 
 
           </section>

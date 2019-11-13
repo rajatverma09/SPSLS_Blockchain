@@ -24,7 +24,7 @@ contract SPSLS {
     int winner = -1;
     string public getFinalResult = "";
     int256 constant INT_MAX = 1000000000000;
-    int private TIMEOUTTIMER = 60;
+    int private TIMEOUTTIMER = 300;
     int public countdownBegins=INT_MAX;
     
     
