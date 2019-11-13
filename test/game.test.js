@@ -633,7 +633,7 @@ describe ('SPSLS', () => {
         await SPSLS.methods.commit(hash_3megha).send({from: accounts[1], gas: 3000000});
         await SPSLS.methods.commit(hash_1rajat).send({from: accounts[2], gas: 3000000});
         await SPSLS.methods.reveal("3","megha").send({from: accounts[1], gas: 3000000});
-        console.log("            Timer running");
+        console.log("            Timer running 13 sec");
         await sleep(13000);
 
         await SPSLS.methods.roundResult().send({from: accounts[1], gas: 3000000});
@@ -682,7 +682,7 @@ describe ('SPSLS', () => {
         await SPSLS.methods.reveal("3","megha").send({from: accounts[1], gas: 3000000});
         await SPSLS.methods.reveal("1","rajat").send({from: accounts[2], gas: 3000000});
         
-        console.log("            Timer running");
+        console.log("            Timer running 13 sec");
         await sleep(13000);
 
         await SPSLS.methods.roundResult().send({from: accounts[1], gas: 3000000});
