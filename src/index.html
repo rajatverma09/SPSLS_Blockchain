@@ -19,11 +19,30 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      
+      .column {
+        float: left;
+        width: 20%;
+        padding: 5px;
+      }
+      
+      /* Clearfix (clear floats) */
+      .row::after {
+        content: "";
+        clear: both;
+        display: table;
+      }
+      </style>
+
 </head>
 
 <body>
   <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
-    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="http://www.dappuniversity.com/free-download"
+    <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="http://www.github.com/rajatverma09"
       target="_blank">Rock Paper Scissor Lizard Spock</a>
     <ul class="navbar-nav px-3">
       <li class="nav-item text-nowrap d-none d-sm-none d-sm-block">
@@ -32,7 +51,7 @@
     </ul>
     <form class="form-inline">
       <input class="form-control" id="_donate" placeholder="Ether">
-      <button type="submit" onclick="App.donateToHouse(); return false;">donateToHouse</button>
+      <button type="submit"  class="btn btn-success" onclick="App.donateToHouse(); return false;">donateToHouse</button>
     </form>
   </nav>
 
@@ -45,50 +64,73 @@
         <div id="content">
           <section class="game">
             <br><br><br>
-            <h1>Rock - Paper - Scissor - Lizard - Spock</h1>
+            <div class="jumbotron">
+            <h2 class="font-weight-bolder" align=middle>Rock - Paper - Scissor - Lizard - Spock</h2>
+          </div>
 
             <div align="middle" style="width:100%">
-              <font id="roundno" size="4" color="white" style="display:none;padding: 40px;"></font>
-            </div>
+              <font id="roundno" size="4" color="black" style="display:none;padding: 40px;"></font>
+            </div> 
             <div align="middle" style="width:100%; display:none; padding: 40px;" id="withdraw">
-              <button onclick="App.withdraw(); return false;">Withdraw</button>
+              <button class="btn btn-primary" onclick="App.withdraw(); return false;">Withdraw</button>
             </div>
-
             <div id="section1" align="middle" height="40vh" style="display:none;padding: 40px;">
-              <button onclick="App.PlayWithBot(); return false;">Let's Play with Bot</button>
-              <button onclick="App.PlayWithPlayer(); return false;">Let's Play with Player</button>
+              <button  class="btn btn-primary" onclick="App.PlayWithBot(); return false;">Let's Play with Bot</button>
+              <button  class="btn btn-primary" onclick="App.PlayWithPlayer(); return false;">Let's Play with Player</button>
+              <div class="row">
+                <div class="column">
+                  <img src="assets/lizard.png" alt="Lizard" style="width:100%">
+                  <bold><label align=center>Lizard</label></bold>
+                </div>
+                <div class="column">
+                  <img src="assets/rock.png" alt="Rock" style="width:100%">
+                  <bold><label align=center>Rock</label></bold>
+                </div>
+                <div class="column">
+                  <img src="assets/paper.png" alt="Paper" style="width:100%">
+                  <bold><label align=center>Paper</label></bold>
+                </div>
+                <div class="column">
+                  <img src="assets/scissors.png" alt="Scissor" style="width:100%">
+                  <bold><label align=center>Scissor</label></bold>
+                </div>
+                <div class="column">
+                  <img src="assets/spock.png" alt="Spock" style="width:100%">
+                  <bold><label align=center><bold>Spock</bold></label></bold>  
+                </div>
+              </div>
             </div>
 
             <div id="section2" align="middle" height="40vh" style="display:none;padding: 40px;">
-              <select id="choice" name="choice">
+              <select id="choice" class="form-control" name="choice">
                 <option value="0">Rock</option>
                 <option value="1">Paper</option>
                 <option value="2">Scissors</option>
                 <option value="3">Lizard</option>
                 <option value="4">Spock</option>
               </select>
-              <input id="_Cnonce" type="text" style="width:400px;" name="nonce" placeholder="nonce">
-              <button class="button" id="lock" type="button" onclick="App.commit()">Commit</button> <br>
+              <input id="_Cnonce" class="form-control" type="text" style="width:400px;" name="nonce" placeholder="nonce">
+              <button class="button btn btn-danger" id="lock" type="button" onclick="App.commit()">Commit</button> <br>
             </div>
 
             <div id="section3" align="middle" height="40vh" style="display:none;padding: 40px;">
-              <select id="choice2" name="choice2">
+              <select id="choice2" class="form-control" name="choice2">
                 <option value="0">Rock</option>
                 <option value="1">Paper</option>
                 <option value="2">Scissors</option>
                 <option value="3">Lizard</option>
                 <option value="4">Spock</option>
               </select>
-              <input id="_Rnonce" type="text" style="width:400px;" name="nonce" placeholder="nonce">
-              <button class="button" id="unlock" type="button" onclick="App.reveal()">Reveal</button>
+              <input id="_Rnonce" class="form-control" type="text" style="width:400px;" name="nonce" placeholder="nonce">
+              <button class="button btn btn-danger" id="unlock" type="button" onclick="App.reveal()">Reveal</button>
               <br>
             </div>
 
             <div id="section4" align="middle" height="40vh" style="display:none;padding: 40px;">
-              <button class="button" type="button" onclick="App.roundResult()">Get Round Result</button> <br>
+              <button class="button btn btn-success"  type="button" onclick="App.roundResult()">Get Round Result</button> <br>
             </div>
             <div align="middle" style="width:100%">
-              <font id="state" size="4" color="white">[Loading Game State..]</font>
+              <font id="state" size="4"  color="black">[Loading Game State..]</font>
             </div>
 
 

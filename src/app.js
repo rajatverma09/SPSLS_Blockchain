@@ -222,7 +222,7 @@ App = {
 
   reveal: async () => {
     App.setLoading(true)
-    var e = document.getElementById("choice");
+    var e = document.getElementById("choice2");
     var choice = e.options[e.selectedIndex].value;
     _nonce = document.getElementById("_Rnonce").value;
     await App.spsls.reveal(choice, _nonce, { from: App.account })
